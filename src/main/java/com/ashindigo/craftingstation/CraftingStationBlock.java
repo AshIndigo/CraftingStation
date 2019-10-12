@@ -42,6 +42,6 @@ public class CraftingStationBlock extends BlockWithEntity implements InventoryPr
 
     @Override
     public SidedInventory getInventory(BlockState blockState, IWorld iWorld, BlockPos blockPos) {
-        return null;
+        return ((InventoryProvider)iWorld.getBlockEntity(blockPos)).getInventory(blockState, iWorld, blockPos);
     }
 }
