@@ -13,6 +13,17 @@ group = project.maven_group
 minecraft {
 }
 
+repositories {
+	maven {
+		name = "Cotton"
+		url = "http://server.bbkr.space:8081/artifactory/libs-release/"
+	}
+	maven {
+		name = "Cotton (snapshots)"
+		url = "http://server.bbkr.space:8081/artifactory/libs-snapshot/"
+	}
+}
+
 dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -21,7 +32,7 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modCompile "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
+	modCompile "io.github.cottonmc:LibGui:1.3.2"
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
 }

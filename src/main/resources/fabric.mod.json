@@ -16,14 +16,17 @@
   "entrypoints": {
     "main": [
       "com.ashindigo.craftingstation.CraftingStation"
+    ],
+    "client": [
+      "com.ashindigo.craftingstation.CraftingStationClient"
     ]
+
   },
   "mixins": [
   ],
   "depends": {
     "fabricloader": ">=0.4.0",
-    "fabric": "*"
-  },
-  "suggests": {
+    "fabric": "*",
+    "libgui":">=1.3.2"
   }
 }
