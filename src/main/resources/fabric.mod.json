@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "craftingstation",
+  "version": "${version}",
+  "name": "Crafting Station",
+  "description": "Adds a crafting station to Minecraft",
+  "authors": [
+    "AshIndigo"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "icon": "assets/craftingstation/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.ashindigo.craftingstation.CraftingStation"
+    ]
+  },
+  "mixins": [
+  ],
+  "depends": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*"
+  },
+  "suggests": {
+  }
+}
