@@ -1,35 +1,36 @@
 package com.ashindigo.craftingstation;
 
-import com.ashindigo.craftingstation.gui.CraftingStationGui;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.container.*;
+import net.minecraft.container.BlockContext;
+import net.minecraft.container.Container;
+import net.minecraft.container.NameableContainerProvider;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.BasicInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.SidedInventory;
+import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
 
-public class CraftingStationTileEntity extends BlockEntity implements NameableContainerProvider, InventoryProvider {
-    private SidedInventory inventory;
+public class CraftingStationTileEntity extends BlockEntity implements NameableContainerProvider {
+    private CraftingStationInventory inventory;
 
     public CraftingStationTileEntity() {
         super(CraftingStation.type);
-        inventory = new CraftingStationInventory(null,3, 3);
+        inventory = new CraftingStationInventory(new Container(null, 0) {
+            @Override
+            public boolean canUse(PlayerEntity var1) {
+                return true;
+            }
+        }, 3, 3);
     }
 
     @Override
     public Container createMenu(int var1, PlayerInventory var2, PlayerEntity var3) {
-        CraftingStationGui craftingStationGui = new CraftingStationGui(var1, var2, BlockContext.create(var3.world, this.pos));
-        return craftingStationGui;
+        CraftingStationContainer craftingStationContainer = new CraftingStationContainer(var1, var3, inventory, new CraftingResultInventory(), BlockContext.create(world, pos));
+        inventory.setContainer(craftingStationContainer);
+        return craftingStationContainer;
     }
 
     @Override
@@ -58,8 +59,4 @@ public class CraftingStationTileEntity extends BlockEntity implements NameableCo
         return super.toTag(compound);
     }
 
-    @Override
-    public SidedInventory getInventory(BlockState var1, IWorld var2, BlockPos var3) {
-        return inventory;
-    }
 }

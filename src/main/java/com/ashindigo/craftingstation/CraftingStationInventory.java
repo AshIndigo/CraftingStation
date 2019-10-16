@@ -1,30 +1,24 @@
 package com.ashindigo.craftingstation;
 
 import net.minecraft.container.Container;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.RecipeFinder;
+import net.minecraft.recipe.RecipeInputProvider;
 import net.minecraft.util.DefaultedList;
-import net.minecraft.util.math.Direction;
 
 import java.util.Iterator;
 
-public class CraftingStationInventory extends CraftingInventory implements SidedInventory {
+public class CraftingStationInventory extends CraftingInventory implements RecipeInputProvider {
 
     private final DefaultedList<ItemStack> stacks;
-    private final int width;
-    private final int height;
-    private final Container container;
+    private Container container;
 
     public CraftingStationInventory(Container container_1, int int_1, int int_2) {
         super(container_1, int_1, int_2);
         this.stacks = DefaultedList.ofSize(int_1 * int_2, ItemStack.EMPTY);
         this.container = container_1;
-        this.width = int_1;
-        this.height = int_2;
     }
 
     @Override
@@ -35,16 +29,17 @@ public class CraftingStationInventory extends CraftingInventory implements Sided
     @Override
     public boolean isInvEmpty() {
         Iterator var1 = this.stacks.iterator();
+        if (!var1.hasNext()) {
+            return true;
+        }
 
-        ItemStack itemStack_1;
-        do {
+        ItemStack itemStack_1 = (ItemStack) var1.next();
+        while (itemStack_1.isEmpty()) {
             if (!var1.hasNext()) {
                 return true;
             }
-
             itemStack_1 = (ItemStack) var1.next();
-        } while (itemStack_1.isEmpty());
-
+        }
         return false;
     }
 
@@ -62,25 +57,15 @@ public class CraftingStationInventory extends CraftingInventory implements Sided
     public ItemStack takeInvStack(int int_1, int int_2) {
         ItemStack itemStack_1 = Inventories.splitStack(this.stacks, int_1, int_2);
         if (!itemStack_1.isEmpty()) {
-            //this.container.onContentChanged(this);
+            this.container.onContentChanged(this);
         }
-
         return itemStack_1;
     }
 
     @Override
     public void setInvStack(int int_1, ItemStack itemStack_1) {
         this.stacks.set(int_1, itemStack_1);
-        //this.container.onContentChanged(this);
-    }
-
-    @Override
-    public void markDirty() {
-    }
-
-    @Override
-    public boolean canPlayerUseInv(PlayerEntity playerEntity_1) {
-        return true;
+        this.container.onContentChanged(this);
     }
 
     @Override
@@ -89,37 +74,13 @@ public class CraftingStationInventory extends CraftingInventory implements Sided
     }
 
     @Override
-    public int getHeight() {
-        return this.height;
-    }
-
-    @Override
-    public int getWidth() {
-        return this.width;
-    }
-
-    @Override
     public void provideRecipeInputs(RecipeFinder recipeFinder_1) {
-
         for (ItemStack itemStack_1 : this.stacks) {
             recipeFinder_1.addNormalItem(itemStack_1);
         }
-
     }
 
-    @Override
-    public int[] getInvAvailableSlots(Direction var1) {
-        return new int[0];
+    public void setContainer(CraftingStationContainer craftingStationContainer) {
+        this.container = craftingStationContainer;
     }
-
-    @Override
-    public boolean canInsertInvStack(int var1, ItemStack var2, Direction var3) {
-        return false;
-    }
-
-    @Override
-    public boolean canExtractInvStack(int var1, ItemStack var2, Direction var3) {
-        return false;
-    }
-
 }
