@@ -2,7 +2,9 @@ package com.ashindigo.craftingstation;
 
 import com.ashindigo.craftingstation.widgets.WCraftingResultSlot;
 import com.ashindigo.craftingstation.widgets.WItemListPanel;
+import com.ashindigo.craftingstation.widgets.WListItemSlot;
 import io.github.cottonmc.cotton.gui.CottonScreenController;
+import io.github.cottonmc.cotton.gui.ValidatedSlot;
 import io.github.cottonmc.cotton.gui.widget.*;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
@@ -50,9 +52,10 @@ public class CraftingStationContainer extends CottonScreenController {
                     if (player.world.getBlockState(opt.get()).getBlock() instanceof ChestBlock) {
                         offsetX = 4;
                         inv = ChestBlock.getInventory(player.world.getBlockState(opt.get()), player.world, opt.get(), true);
-                        ArrayList<WItemSlot> defList = new ArrayList<>();
+                        ArrayList<WListItemSlot> defList = new ArrayList<>();
                         for (int i = 0; i < inv.getInvSize() / 3; i++) {
-                            defList.add(WItemSlot.of(inv, i * 3, 3, 1));
+                            //defList.add(WItemSlot.of(inv, i * 3, 3, 1));
+                            defList.add(new WListItemSlot(inv, i * 3, 3, 1, false));
                         }
                         rootPanel.add(new WItemListPanel(defList, this), 0,0);
                         break;
@@ -87,6 +90,10 @@ public class CraftingStationContainer extends CottonScreenController {
         rootPanel.validate(this);
     }
 
+    public void createPeers() {
+        rootPanel.createPeers(this);
+    }
+
 
     @Override
     public void clearCraftingSlots() {
@@ -113,6 +120,10 @@ public class CraftingStationContainer extends CottonScreenController {
             }
             world.getBlockEntity(blockPos_1).markDirty();
         });
+    }
+
+    public void clearSlots() {
+        this.slotList.clear();
     }
 
     @Override

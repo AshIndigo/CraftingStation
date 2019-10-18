@@ -1,5 +1,6 @@
 package com.ashindigo.craftingstation.widgets;
 
+import com.ashindigo.craftingstation.CraftingStationContainer;
 import io.github.cottonmc.cotton.gui.GuiDescription;
 import io.github.cottonmc.cotton.gui.client.ScreenDrawing;
 import io.github.cottonmc.cotton.gui.widget.Axis;
@@ -16,10 +17,10 @@ public class WItemListPanel extends WPanel {
 
     private WBetterScrollbar scrollBar = new WBetterScrollbar(Axis.VERTICAL);
     private int lastScroll = -1;
-    private List<WItemSlot> list;
-    private GuiDescription gui;
+    private List<WListItemSlot> list;
+    private CraftingStationContainer gui;
 
-    public WItemListPanel(List<WItemSlot> data, GuiDescription gui) {
+    public WItemListPanel(List<WListItemSlot> data, CraftingStationContainer gui) {
         this.list = data;
         this.gui = gui;
         scrollBar.setMaxValue(data.size());
@@ -34,13 +35,17 @@ public class WItemListPanel extends WPanel {
         }
 
         if (scrollBar.getValue() != lastScroll) {
-            layout();
+            gui.clearSlots();
+            gui.triggerValidatation();
             lastScroll = scrollBar.getValue();
         }
 
         for (WWidget child : children) {
-            child.paintBackground(x + child.getX(), y + child.getY(), mouseX - child.getX(), mouseY - child.getY());
+            if (child.getY() >= 0 && child.getY() <= 162) {
+                child.paintBackground(x + child.getX(), y + child.getY(), mouseX - child.getX(), mouseY - child.getY());
+            }
         }
+        //layout();
     }
 
     @Override
@@ -57,19 +62,25 @@ public class WItemListPanel extends WPanel {
         scrollBar.setWindow(cellsHigh);
         int scrollOffset = scrollBar.getValue();
         int presentCells = Math.min(list.size() - scrollOffset, cellsHigh);
-        if (presentCells > 0) {
-            for (int i = 0; i < presentCells; i++) {
-                int index = i + scrollOffset;
-                if (index >= list.size()) break;
-                if (index < 0) continue;
-                WItemSlot w = list.get(index);
-                if (w.canResize()) {
-                    w.setSize(this.width - (margin * 2) - scrollBar.getWidth(), cellHeight);
-                }
-                w.setLocation(margin, margin + (cellHeight * i));
-                this.children.add(w);
-            }
+        for (int i = 0; i < list.size(); i++) {
+            WListItemSlot slot = list.get(i);
+            slot.setLocation(margin, margin + (cellHeight * (i - scrollOffset)));
+            slot.setSize(this.width - (margin * 2) - scrollBar.getWidth(), cellHeight);
+            children.add(slot);
         }
+//        if (presentCells > 0) {
+//            for (int i = 0; i < presentCells; i++) {
+//                int index = i + scrollOffset;
+//                if (index >= list.size()) break;
+//                if (index < 0) continue;
+//                WItemSlot w = list.get(index);
+//                if (w.canResize()) {
+//                    w.setSize(this.width - (margin * 2) - scrollBar.getWidth(), cellHeight);
+//                }
+//                w.setLocation(margin, margin + (cellHeight * i));
+//                this.children.add(w);
+//            }
+//        }
     }
 
 }
