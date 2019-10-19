@@ -2,6 +2,7 @@ package com.ashindigo.craftingstation.widgets;
 
 import com.google.common.collect.Lists;
 import io.github.cottonmc.cotton.gui.GuiDescription;
+import io.github.cottonmc.cotton.gui.ValidatedSlot;
 import io.github.cottonmc.cotton.gui.widget.WItemSlot;
 import net.minecraft.container.Slot;
 import net.minecraft.inventory.Inventory;
@@ -25,13 +26,16 @@ public class WListItemSlot extends WItemSlot {
 
     @Override
     public void createPeers(GuiDescription c) {
-        //super.createPeers(c);
         peers.clear();
         int index = startIndex;
-
         for (int y = 0; y < slotsHigh; y++) {
             for (int x = 0; x < slotsWide; x++) {
-                ValidatedListSlot slot = new ValidatedListSlot(inventory, index, this.getAbsoluteX() + (x * 18), this.getAbsoluteY() + (y * 18));
+                ValidatedSlot slot = new ValidatedSlot(inventory, index, this.getAbsoluteX() + (x * 18), this.getAbsoluteY() + (y * 18)) {
+                    @Override
+                    public boolean doDrawHoveringEffect() {
+                        return this.yPosition <= 162 && this.yPosition > 0;
+                    }
+                };
                 peers.add(slot);
                 c.addSlotPeer(slot);
                 index++;

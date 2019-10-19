@@ -4,13 +4,16 @@ import com.ashindigo.craftingstation.widgets.WCraftingResultSlot;
 import com.ashindigo.craftingstation.widgets.WItemListPanel;
 import com.ashindigo.craftingstation.widgets.WListItemSlot;
 import io.github.cottonmc.cotton.gui.CottonScreenController;
-import io.github.cottonmc.cotton.gui.ValidatedSlot;
-import io.github.cottonmc.cotton.gui.widget.*;
+import io.github.cottonmc.cotton.gui.widget.WGridPanel;
+import io.github.cottonmc.cotton.gui.widget.WItemSlot;
+import io.github.cottonmc.cotton.gui.widget.WLabel;
+import io.github.cottonmc.cotton.gui.widget.WSprite;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.network.packet.GuiSlotUpdateS2CPacket;
 import net.minecraft.container.BlockContext;
+import net.minecraft.container.SlotActionType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
@@ -32,7 +35,7 @@ public class CraftingStationContainer extends CottonScreenController {
     private final CraftingStationInventory inventory;
     private final CraftingResultInventory resultInv;
     private final BlockContext context;
-    private int offsetX = 0;
+    private Inventory inv;
 
     public CraftingStationContainer(int sync, PlayerEntity player, CraftingStationInventory inventory, CraftingResultInventory resultInv, BlockContext context) {
         super(RecipeType.CRAFTING, sync, player.inventory, inventory, null);
@@ -41,6 +44,7 @@ public class CraftingStationContainer extends CottonScreenController {
         this.resultInv = resultInv;
         this.context = context;
         WGridPanel rootPanel = (WGridPanel) getRootPanel();
+        int offsetX = 0;
         for (Direction dir : Direction.values()) {
             Optional<BlockPos> opt = context.run(((world, blockPos) -> {
                 return blockPos.offset(dir);
@@ -48,50 +52,64 @@ public class CraftingStationContainer extends CottonScreenController {
             if (opt.isPresent()) {
                 BlockEntity te = player.world.getBlockEntity(opt.get());
                 if (te != null && !(te instanceof CraftingStationTileEntity)) {
-                    Inventory inv;
                     if (player.world.getBlockState(opt.get()).getBlock() instanceof ChestBlock) {
                         offsetX = 4;
                         inv = ChestBlock.getInventory(player.world.getBlockState(opt.get()), player.world, opt.get(), true);
                         ArrayList<WListItemSlot> defList = new ArrayList<>();
-                        for (int i = 0; i < inv.getInvSize() / 3; i++) {
-                            //defList.add(WItemSlot.of(inv, i * 3, 3, 1));
-                            defList.add(new WListItemSlot(inv, i * 3, 3, 1, false));
+                        if (inv != null) {
+                            for (int i = 0; i < inv.getInvSize() / 3; i++) {
+                                defList.add(new WListItemSlot(inv, i * 3, 3, 1, false));
+                            }
+                            rootPanel.add(new WItemListPanel(defList, this), 0, 0);
+                            break;
                         }
-                        rootPanel.add(new WItemListPanel(defList, this), 0,0);
-                        break;
                     }
                     if (te instanceof InventoryProvider) {
                         offsetX = 4;
                         inv = ((InventoryProvider) te).getInventory(player.world.getBlockState(opt.get()), player.world, opt.get());
-                        rootPanel.add(WItemSlot.of(inv, 0, 3, inv.getInvSize() / 3), 0, 0);
+                        ArrayList<WListItemSlot> defList = new ArrayList<>();
+                        for (int i = 0; i < inv.getInvSize() / 3; i++) {
+                            defList.add(new WListItemSlot(inv, i * 3, 3, 1, false));
+                        }
+                        rootPanel.add(new WItemListPanel(defList, this), 0, 0);
                         break;
                     } else if (te instanceof Inventory) {
                         offsetX = 4;
                         inv = (Inventory) te;
-                        rootPanel.add(WItemSlot.of(inv, 0, 3, (inv.getInvSize()) / 3), 0, 0);
+                        ArrayList<WListItemSlot> defList = new ArrayList<>();
+                        for (int i = 0; i < inv.getInvSize() / 3; i++) {
+                            defList.add(new WListItemSlot(inv, i * 3, 3, 1, false));
+                        }
+                        rootPanel.add(new WItemListPanel(defList, this), 0, 0);
                         break;
                     }
                 }
             }
         }
-        rootPanel.add(new WLabel(new TranslatableText("container.craftingstation.craftingstation"), 0x404040), 1+ offsetX, 0);
-        rootPanel.add(new WCraftingResultSlot(player, inventory, resultInv, 0, 1, 1, true, false), 7+ offsetX, 2);
+        rootPanel.add(new WLabel(new TranslatableText("container.craftingstation.craftingstation"), 0x404040), 1 + offsetX, 0);
+        rootPanel.add(new WCraftingResultSlot(player, inventory, resultInv, 0, 1, 1, true, false), 7 + offsetX, 2);
         rootPanel.add(WItemSlot.of(inventory, 0, 3, 3), 1 + offsetX, 1);
         // Arrow
         rootPanel.add(new WSprite(new Identifier(CraftingStation.MODID, "textures/gui/arrow1.png")), 5 + offsetX, 2);
         rootPanel.add(new WSprite(new Identifier(CraftingStation.MODID, "textures/gui/arrow2.png")), 6 + offsetX, 2);
         // Player panel
         rootPanel.add(this.createPlayerInventoryPanel(), offsetX, 5);
+        this.clearSlots();
         this.triggerValidatation();
         onContentChanged(inventory);
     }
 
     public void triggerValidatation() {
         rootPanel.validate(this);
+        onContentChanged(inventory);
     }
 
-    public void createPeers() {
-        rootPanel.createPeers(this);
+    @Override
+    public ItemStack onSlotClick(int slotNumber, int button, SlotActionType action, PlayerEntity player) {
+        blockInventory = player.inventory;
+        ItemStack stack = super.onSlotClick(slotNumber, button, action, player);
+        blockInventory = inventory;
+        return stack;
     }
 
 
@@ -116,7 +134,7 @@ public class CraftingStationContainer extends CottonScreenController {
                     }
                 }
                 resultInv.setInvStack(0, stack);
-                serverPlayer.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(syncId, 0, stack));
+                serverPlayer.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(syncId, inv != null ? inv.getInvSize() : 0, stack));
             }
             world.getBlockEntity(blockPos_1).markDirty();
         });
@@ -150,4 +168,6 @@ public class CraftingStationContainer extends CottonScreenController {
     public int getCraftingSlotCount() {
         return 10;
     }
+
+
 }
