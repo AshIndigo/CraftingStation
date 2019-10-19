@@ -1,9 +1,7 @@
 package com.ashindigo.craftingstation;
 
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.InventoryProvider;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.SidedInventory;
@@ -42,6 +40,19 @@ public class CraftingStationBlock extends BlockWithEntity implements InventoryPr
 
     @Override
     public SidedInventory getInventory(BlockState blockState, IWorld iWorld, BlockPos blockPos) {
-        return ((InventoryProvider)iWorld.getBlockEntity(blockPos)).getInventory(blockState, iWorld, blockPos);
+        return ((InventoryProvider) iWorld.getBlockEntity(blockPos)).getInventory(blockState, iWorld, blockPos);
     }
+
+    @Override
+    @Deprecated
+    public BlockRenderType getRenderType(BlockState blockState_1) {
+        return BlockRenderType.MODEL;
+    }
+
+    @Override
+    public BlockRenderLayer getRenderLayer() {
+        return BlockRenderLayer.TRANSLUCENT;
+    }
+
+
 }
