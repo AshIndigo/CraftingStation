@@ -50,8 +50,13 @@ public class CraftingStationBlock extends BlockWithEntity implements InventoryPr
     }
 
     @Override
-    public BlockRenderLayer getRenderLayer() {
-        return BlockRenderLayer.TRANSLUCENT;
+    public boolean isOpaque(BlockState blockState_1) {
+        return false;
+    }
+
+    @Override
+    public boolean isSimpleFullBlock(BlockState blockState_1, BlockView blockView_1, BlockPos blockPos_1) {
+        return false;
     }
 
 
