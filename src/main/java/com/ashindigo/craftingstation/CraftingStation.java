@@ -22,12 +22,11 @@ public class CraftingStation implements ModInitializer {
     public static final String MODID = "craftingstation";
     public static BlockEntityType<?> type;
     public static ContainerFactory<Container> stationContainer;
-    private Block craftingStationBlock;
     public static final Identifier craftingStationID = new Identifier(MODID, MODID);
 
     @Override
     public void onInitialize() {
-        craftingStationBlock = new CraftingStationBlock(FabricBlockSettings.of(Material.WOOD).strength(2.5F, 2.5F).build());
+        Block craftingStationBlock = new CraftingStationBlock(FabricBlockSettings.of(Material.WOOD).strength(2.5F, 2.5F).build());
         Registry.register(Registry.BLOCK, craftingStationID, craftingStationBlock);
         Registry.register(Registry.ITEM, craftingStationID, new BlockItem(craftingStationBlock, new Item.Settings().maxCount(64).group(ItemGroup.MISC)));
         type = BlockEntityType.Builder.create(CraftingStationTileEntity::new, craftingStationBlock).build(null);

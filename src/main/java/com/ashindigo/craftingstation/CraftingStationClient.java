@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry;
 import net.minecraft.container.ContainerProvider;
 
+@SuppressWarnings("unused")
 public class CraftingStationClient implements ClientModInitializer {
 
     @Override

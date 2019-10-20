@@ -30,9 +30,7 @@ public class CraftingStationBlock extends BlockWithEntity implements InventoryPr
         }
         BlockEntity be = world.getBlockEntity(pos);
         if (be instanceof CraftingStationTileEntity) {
-            ContainerProviderRegistry.INSTANCE.openContainer(CraftingStation.craftingStationID, player, (buf) -> {
-                buf.writeBlockPos(pos);
-            });
+            ContainerProviderRegistry.INSTANCE.openContainer(CraftingStation.craftingStationID, player, (buf) -> buf.writeBlockPos(pos));
         }
 
         return true;
