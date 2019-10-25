@@ -13,7 +13,6 @@ import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.network.packet.GuiSlotUpdateS2CPacket;
 import net.minecraft.container.BlockContext;
-import net.minecraft.container.CraftingTableContainer;
 import net.minecraft.container.Slot;
 import net.minecraft.container.SlotActionType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -29,6 +28,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -38,9 +39,16 @@ public class CraftingStationContainer extends CottonScreenController {
     private final CraftingResultInventory resultInv;
     private final BlockContext context;
     private Inventory inv;
+    private Method m;
 
     public CraftingStationContainer(int sync, PlayerEntity player, CraftingStationInventory inventory, CraftingResultInventory resultInv, BlockContext context) {
         super(RecipeType.CRAFTING, sync, player.inventory, inventory, null);
+        try {
+            m = this.getClass().getSuperclass().getDeclaredMethod("insertItem", ItemStack.class, Inventory.class, boolean.class);
+            m.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
         this.player = player;
         this.inventory = inventory;
         this.resultInv = resultInv;
@@ -107,59 +115,50 @@ public class CraftingStationContainer extends CottonScreenController {
     }
 
     @Override
-    public ItemStack transferSlot(PlayerEntity playerEntity_1, int int_1) { // + 10
-        ItemStack itemStack_1 = ItemStack.EMPTY;
-        Slot slot_1 = this.slotList.get(int_1);
-        if (slot_1 != null && slot_1.hasStack()) {
-            ItemStack itemStack_2 = slot_1.getStack();
-            itemStack_1 = itemStack_2.copy();
-            if (int_1 == 0) {
-                this.context.run((world_1, blockPos_1) -> {
-                    itemStack_2.getItem().onCraft(itemStack_2, world_1, playerEntity_1);
-                });
-                if (!this.insertItem(itemStack_2, 0, 46, true)) {
-                    return ItemStack.EMPTY;
-                }
-
-                slot_1.onStackChanged(itemStack_2, itemStack_1);
-            } else if (int_1 >= 10 && int_1 < 37) {
-                if (!this.insertItem(itemStack_2, 27, 46, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (int_1 >= 37 && int_1 < 46) {
-                if (!this.insertItem(itemStack_2, 0, 37, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!this.insertItem(itemStack_2, 0, 46, false)) {
-                return ItemStack.EMPTY;
-            }
-
-            if (itemStack_2.isEmpty()) {
-                slot_1.setStack(ItemStack.EMPTY);
-            } else {
-                slot_1.markDirty();
-            }
-
-            if (itemStack_2.getCount() == itemStack_1.getCount()) {
-                return ItemStack.EMPTY;
-            }
-
-            ItemStack itemStack_3 = slot_1.onTakeItem(playerEntity_1, itemStack_2);
-            if (int_1 == 0) {
-                playerEntity_1.dropItem(itemStack_3, false);
-            }
-        }
-
-        return itemStack_1;
-    }
-
-    @Override
     public ItemStack onSlotClick(int slotNumber, int button, SlotActionType action, PlayerEntity player) {
         if (action == SlotActionType.QUICK_MOVE) {
-            return transferSlot(player, slotNumber);
+            try {
+                if (slotNumber < 0) {
+                    return ItemStack.EMPTY;
+                }
+
+                if (slotNumber >= this.slotList.size()) return ItemStack.EMPTY;
+                Slot slot = this.slotList.get(slotNumber);
+                if (slot == null || !slot.canTakeItems(player)) {
+                    return ItemStack.EMPTY;
+                }
+
+                ItemStack remaining = ItemStack.EMPTY;
+                if (slot.hasStack()) {
+                    ItemStack toTransfer = slot.getStack();
+                    remaining = toTransfer.copy();
+                    if (blockInventory != null) {
+                        if (slot.inventory == blockInventory || slot.inventory == resultInv) {
+                            if (!(boolean) m.invoke(this, toTransfer, this.playerInventory, true)) {
+                                return ItemStack.EMPTY;
+                            }
+                            if (slot.inventory == resultInv) {
+                                slot.onTakeItem(player, slot.getStack());
+                            }
+                        } else if (!(boolean) m.invoke(this, toTransfer, this.blockInventory, false)) { //Try to transfer the item from the player to the block
+                            return ItemStack.EMPTY;
+                        }
+                    }
+                    if (toTransfer.isEmpty()) {
+                        slot.setStack(ItemStack.EMPTY);
+                    } else {
+                        slot.markDirty();
+                    }
+                }
+                onContentChanged(blockInventory);
+                return remaining;
+            } catch (IllegalAccessException | InvocationTargetException | NullPointerException e) {
+                e.printStackTrace();
+            }
         } else {
             return super.onSlotClick(slotNumber, button, action, player);
         }
+        return super.onSlotClick(slotNumber, button, action, player);
     }
 
 
