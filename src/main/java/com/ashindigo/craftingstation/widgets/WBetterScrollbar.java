@@ -6,6 +6,7 @@ import io.github.cottonmc.cotton.gui.widget.WScrollBar;
 /**
  * Just a setter for window
  */
+@SuppressWarnings("WeakerAccess")
 public class WBetterScrollbar extends WScrollBar {
 
     public WBetterScrollbar(Axis vertical) {

@@ -10,10 +10,10 @@ import java.util.List;
 
 public class WItemListPanel extends WPanel {
 
-    private WBetterScrollbar scrollBar = new WBetterScrollbar(Axis.VERTICAL);
+    private final WBetterScrollbar scrollBar = new WBetterScrollbar(Axis.VERTICAL);
     private int lastScroll = -1;
-    private List<WListItemSlot> list;
-    private CraftingStationContainer gui;
+    private final List<WListItemSlot> list;
+    private final CraftingStationContainer gui;
 
     public WItemListPanel(List<WListItemSlot> data, CraftingStationContainer gui) {
         this.list = data;

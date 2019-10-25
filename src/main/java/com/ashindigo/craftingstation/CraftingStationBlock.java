@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -14,6 +13,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
+@SuppressWarnings("WeakerAccess")
 public class CraftingStationBlock extends BlockWithEntity implements InventoryProvider {
 
     CraftingStationBlock(Settings block$Settings_1) {

@@ -13,8 +13,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 
+@SuppressWarnings("WeakerAccess")
 public class CraftingStationTileEntity extends BlockEntity implements NameableContainerProvider {
-    private CraftingStationInventory inventory;
+    private final CraftingStationInventory inventory;
 
     public CraftingStationTileEntity() {
         super(CraftingStation.type);

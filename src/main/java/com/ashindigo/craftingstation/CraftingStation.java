@@ -17,6 +17,7 @@ import net.minecraft.util.registry.Registry;
 
 import java.util.Objects;
 
+@SuppressWarnings("WeakerAccess")
 public class CraftingStation implements ModInitializer {
 
     public static final String MODID = "craftingstation";

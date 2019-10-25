@@ -13,6 +13,7 @@ import net.minecraft.util.DefaultedList;
 /**
  * CraftingResultSlot but it's actually a ValidatedSlot
  */
+@SuppressWarnings("WeakerAccess")
 public class ValidatedCraftingResultSlot extends ValidatedSlot {
 
     private final CraftingInventory craftingInv;

@@ -10,6 +10,6 @@ public class CraftingStationClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ScreenProviderRegistry.INSTANCE.registerFactory(CraftingStation.craftingStationID, (syncId, identifier, player, buf) -> new CottonScreen((CraftingStationContainer) ((ContainerProvider) player.world.getBlockEntity(buf.readBlockPos())).createMenu(syncId, player.inventory, player), player));
+        ScreenProviderRegistry.INSTANCE.registerFactory(CraftingStation.craftingStationID, (syncId, identifier, player, buf) -> new CottonScreen<>((CraftingStationContainer) ((ContainerProvider) player.world.getBlockEntity(buf.readBlockPos())).createMenu(syncId, player.inventory, player), player));
     }
 }
