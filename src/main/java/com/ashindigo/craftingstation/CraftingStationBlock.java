@@ -16,7 +16,7 @@ import net.minecraft.world.World;
 @SuppressWarnings("WeakerAccess")
 public class CraftingStationBlock extends BlockWithEntity implements InventoryProvider {
 
-    CraftingStationBlock(Settings block$Settings_1) {
+    public CraftingStationBlock(Settings block$Settings_1) {
         super(block$Settings_1);
     }
 
