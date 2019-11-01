@@ -3,14 +3,17 @@ package com.ashindigo.craftingstation;
 import net.minecraft.container.Container;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.RecipeFinder;
 import net.minecraft.recipe.RecipeInputProvider;
 import net.minecraft.util.DefaultedList;
+import net.minecraft.util.math.Direction;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 
-public class CraftingStationInventory extends CraftingInventory implements RecipeInputProvider {
+public class CraftingStationInventory extends CraftingInventory implements RecipeInputProvider, SidedInventory {
 
     private final DefaultedList<ItemStack> stacks;
     private Container container;
@@ -82,5 +85,20 @@ public class CraftingStationInventory extends CraftingInventory implements Recip
 
     public void setContainer(CraftingStationContainer craftingStationContainer) {
         this.container = craftingStationContainer;
+    }
+
+    @Override
+    public int[] getInvAvailableSlots(Direction var1) {
+        return new int[]{0, 1, 2, 3 ,4 ,5, 6, 7, 8};
+    }
+
+    @Override
+    public boolean canInsertInvStack(int var1, ItemStack var2, @Nullable Direction var3) {
+        return true;
+    }
+
+    @Override
+    public boolean canExtractInvStack(int var1, ItemStack var2, Direction var3) {
+        return true;
     }
 }

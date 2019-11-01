@@ -1,5 +1,7 @@
 package com.ashindigo.craftingstation;
 
+import net.minecraft.block.BlockState;
+import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.container.BlockContext;
 import net.minecraft.container.Container;
@@ -7,14 +9,17 @@ import net.minecraft.container.NameableContainerProvider;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingResultInventory;
+import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IWorld;
 
 @SuppressWarnings("WeakerAccess")
-public class CraftingStationTileEntity extends BlockEntity implements NameableContainerProvider {
+public class CraftingStationTileEntity extends BlockEntity implements NameableContainerProvider, InventoryProvider {
     private final CraftingStationInventory inventory;
 
     public CraftingStationTileEntity() {
@@ -60,4 +65,8 @@ public class CraftingStationTileEntity extends BlockEntity implements NameableCo
         return super.toTag(compound);
     }
 
+    @Override
+    public SidedInventory getInventory(BlockState var1, IWorld var2, BlockPos var3) {
+        return inventory;
+    }
 }
