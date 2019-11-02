@@ -28,7 +28,7 @@ public class CraftingStation implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        Block craftingStationBlock = new CraftingStationBlock(FabricBlockSettings.of(Material.WOOD).strength(2.5F, 2.5F).drops(new Identifier(MODID, MODID)).sounds(BlockSoundGroup.WOOD).build());
+        Block craftingStationBlock = new CraftingStationBlock(FabricBlockSettings.of(Material.WOOD).strength(2.5F, 2.5F).sounds(BlockSoundGroup.WOOD).build());
         Registry.register(Registry.BLOCK, craftingStationID, craftingStationBlock);
         Registry.register(Registry.ITEM, craftingStationID, new BlockItem(craftingStationBlock, new Item.Settings().maxCount(64).group(ItemGroup.MISC)));
         type = BlockEntityType.Builder.create(CraftingStationTileEntity::new, craftingStationBlock).build(null);
