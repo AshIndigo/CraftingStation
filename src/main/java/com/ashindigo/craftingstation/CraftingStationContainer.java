@@ -13,6 +13,7 @@ import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.network.packet.GuiSlotUpdateS2CPacket;
 import net.minecraft.container.BlockContext;
+import net.minecraft.container.CraftingTableContainer;
 import net.minecraft.container.Slot;
 import net.minecraft.container.SlotActionType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -138,7 +139,10 @@ public class CraftingStationContainer extends CottonScreenController {
                                 return ItemStack.EMPTY;
                             }
                             if (slot.inventory == resultInv) {
+                                super.onContentChanged(playerInventory);
                                 slot.onTakeItem(player, slot.getStack());
+                                super.onContentChanged(playerInventory);
+                                this.onSlotClick(slotNumber, button, action, player);
                             }
                         } else if (!(boolean) m.invoke(this, toTransfer, this.blockInventory, false)) { //Try to transfer the item from the player to the block
                             return ItemStack.EMPTY;
