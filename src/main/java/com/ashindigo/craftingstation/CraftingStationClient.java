@@ -1,15 +1,21 @@
 package com.ashindigo.craftingstation;
 
-import io.github.cottonmc.cotton.gui.client.CottonScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry;
-import net.minecraft.container.ContainerProvider;
+import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 
-@SuppressWarnings("unused")
 public class CraftingStationClient implements ClientModInitializer {
-
     @Override
     public void onInitializeClient() {
-        ScreenProviderRegistry.INSTANCE.registerFactory(CraftingStation.craftingStationID, (syncId, identifier, player, buf) -> new CottonScreen<>((CraftingStationContainer) ((ContainerProvider) player.world.getBlockEntity(buf.readBlockPos())).createMenu(syncId, player.inventory, player), player));
+        ScreenProviderRegistry.INSTANCE.registerFactory(CraftingStation.ID,
+                (id, identifier, player, buf) -> {
+                    BlockPos pos = buf.readBlockPos();
+                    int x = buf.readInt();
+                    int y = buf.readInt();
+                    int m = buf.readInt();
+                    Text text = buf.readText();
+                    return new CraftingStationScreen(text, new CraftingStationContainer(id, player.inventory, pos, x, y, m), player, x, y);
+                });
     }
 }
