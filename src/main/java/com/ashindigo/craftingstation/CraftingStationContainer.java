@@ -1,10 +1,8 @@
 package com.ashindigo.craftingstation;
 
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.FurnaceBlockEntity;
 import net.minecraft.container.BlockContext;
 import net.minecraft.container.CraftingResultSlot;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,16 +10,13 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.RecipeType;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import spinnery.common.BaseContainer;
-import spinnery.registry.NetworkRegistry;
 import spinnery.util.StackUtilities;
 import spinnery.widget.WAbstractWidget;
 import spinnery.widget.WInterface;
@@ -32,24 +27,31 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 public class CraftingStationContainer extends BaseContainer { // Mess of a class, just run away
-
     public static final int INVENTORY = 1;
+    public static final int ATTACHED_INVENTORY = 2;
+    public static final int RESULT_INVENTORY = 3;
+
+    public CraftingRecipe cachedRecipe = null;
+
     CraftingStationEntity craftingStationEntity;
     CraftingResultInventory resultInventory;
-    CraftingStationInv craftInv;
+    CraftingStationInventory craftingInventory;
 
     public CraftingStationContainer(int synchronizationID, PlayerInventory playerInventory, BlockPos pos, int arrayWidth, int arrayHeight, int m) {
         super(synchronizationID, playerInventory);
         craftingStationEntity = ((CraftingStationEntity) getWorld().getBlockEntity(pos));
+
         WInterface mainInterface = getInterface();
-        getInventories().put(INVENTORY, craftingStationEntity.inventory);
-        craftInv = new CraftingStationInv(this, craftingStationEntity.inventory);
+
+        craftingInventory = new CraftingStationInventory(this, craftingStationEntity.inventory);
         craftingStationEntity.inventory.addListener(this::onContentChanged);
+
         WSlot.addHeadlessPlayerInventory(mainInterface);
+
         // Add the base slots for crafting
         for (int y = 0; y < 3; ++y) {
             for (int x = 0; x < 3; ++x) {
-                WSlot wslot = mainInterface.createChild(WSlot::new).setSlotNumber(x + y * 3).setInventoryNumber(INVENTORY);
+                mainInterface.createChild(WSlot::new).setSlotNumber(x + y * 3).setInventoryNumber(INVENTORY);
             }
         }
 
@@ -61,7 +63,7 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
                     super.setInvStack(slot, stack);
 
                     if (!world.isClient) {
-                        if (!craftingStationEntity.inventory.isInvEmpty() && world.getServer().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftInv, world).isPresent() && !stack.isItemEqual(getInvStack(0))) {
+                        if (!craftingStationEntity.inventory.isInvEmpty() && world.getServer().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).isPresent() && !stack.isItemEqual(getInvStack(0))) {
                             onContentChanged(null);
                         }
                     }
@@ -71,40 +73,46 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
                 }
             };
         }
-        getInventories().put(3, resultInventory);
-        WSlot resultSlot = mainInterface.createChild(WSlot::new).setSlotNumber(0).setInventoryNumber(3);
+
+        super.addInventory(INVENTORY, craftingStationEntity.inventory);
+        super.addInventory(RESULT_INVENTORY, resultInventory);
+
+        WResultSlot resultSlot = mainInterface.createChild(WResultSlot::new).setSlotNumber(0).setInventoryNumber(3);
+
         // No insertion, only take
         resultSlot.accept(ItemStack.EMPTY.getItem());
         resultSlot.setWhitelist();
+
         // Trigger the crafting using a vanilla inv slot.
         resultSlot.addConsumer((action, subtype) -> {
             if (action == Action.PICKUP || action == Action.PICKUP_ALL || action == Action.QUICK_MOVE) {
                 if (subtype == Action.Subtype.FROM_CURSOR_TO_SLOT_DEFAULT_FULL_STACK || subtype == Action.Subtype.FROM_CURSOR_TO_SLOT_CUSTOM_SINGLE_ITEM || subtype == Action.Subtype.FROM_CURSOR_TO_SLOT_CUSTOM_FULL_STACK || subtype == Action.Subtype.FROM_SLOT_TO_SLOT_CUSTOM_FULL_STACK || subtype == Action.Subtype.FROM_SLOT_TO_CURSOR_CUSTOM_FULL_STACK) {
                     if (!resultSlot.getStack().isEmpty()) {
-                        if (!world.isClient)
-                        new CraftingResultSlot(playerInventory.player, craftInv, resultInventory, 0, 0, 0).onTakeItem(playerInventory.player, resultSlot.getStack());
+                        if (!world.isClient) {
+                            new CraftingResultSlot(playerInventory.player, craftingInventory, resultInventory, 0, 0, 0).onTakeItem(playerInventory.player, resultSlot.getStack());
+                        }
                     }
-
                 }
             }
         });
+
         // Code to add external slots
-        for (Direction dir : Direction.values()) {
+        for (Direction direction : Direction.values()) {
             BlockContext context = BlockContext.create(this.getWorld(), this.craftingStationEntity.getPos());
-            Optional<BlockPos> opt = context.run((BiFunction<World, BlockPos, BlockPos>) (world, blockPos) -> blockPos.offset(dir));
-            if (opt.isPresent()) {
-                BlockEntity te = playerInventory.player.world.getBlockEntity(opt.get());
-                if (te != null && !(te instanceof CraftingStationEntity)) {
-                    if (playerInventory.player.world.getBlockState(opt.get()).getBlock() instanceof ChestBlock) {
-                        addInventory(ChestBlock.getInventory((ChestBlock) playerInventory.player.world.getBlockState(opt.get()).getBlock(), playerInventory.player.world.getBlockState(opt.get()), playerInventory.player.world, opt.get(), true), mainInterface);
+            Optional<BlockPos> optional = context.run((BiFunction<World, BlockPos, BlockPos>) (world, blockPos) -> blockPos.offset(direction));
+            if (optional.isPresent()) {
+                BlockEntity blockEntity = playerInventory.player.world.getBlockEntity(optional.get());
+                if (blockEntity != null && !(blockEntity instanceof CraftingStationEntity)) {
+                    if (playerInventory.player.world.getBlockState(optional.get()).getBlock() instanceof ChestBlock) {
+                        addAttachedInventory(ChestBlock.getInventory((ChestBlock) playerInventory.player.world.getBlockState(optional.get()).getBlock(), playerInventory.player.world.getBlockState(optional.get()), playerInventory.player.world, optional.get(), true), mainInterface);
                         break;
                     }
-                    if (playerInventory.player.world.getBlockState(opt.get()).getBlock() instanceof InventoryProvider) {
-                        addInventory(((InventoryProvider) te).getInventory(playerInventory.player.world.getBlockState(opt.get()), playerInventory.player.world, opt.get()), mainInterface);
+                    if (playerInventory.player.world.getBlockState(optional.get()).getBlock() instanceof InventoryProvider) {
+                        addAttachedInventory(((InventoryProvider) blockEntity).getInventory(playerInventory.player.world.getBlockState(optional.get()), playerInventory.player.world, optional.get()), mainInterface);
                         break;
                     }
-                    if (te instanceof Inventory) {
-                        addInventory((Inventory) te, mainInterface);
+                    if (blockEntity instanceof Inventory) {
+                        addAttachedInventory((Inventory) blockEntity, mainInterface);
                         break;
                     }
                 }
@@ -113,44 +121,204 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
         onContentChanged(resultInventory);
     }
 
-    void addInventory(Inventory inv, WInterface mainInterface) {
-        if (inv != null) {
-            getInventories().put(2, inv);
-            for (int i = 0; i < inv.getInvSize() / 5; i++) {
+    void addAttachedInventory(Inventory inventory, WInterface mainInterface) {
+        if (inventory != null) {
+            addInventory(ATTACHED_INVENTORY, inventory);
+            for (int i = 0; i < inventory.getInvSize() / 5; i++) {
                 for (int j = 0; j < 5; j++) {
-                    if (inv.isValidInvStack(i, inv.getInvStack(i)))
+                    if (inventory.isValidInvStack(i, inventory.getInvStack(i)))
                     mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((5 * i) + j);
                 }
             }
-            for (int i = 0; i < inv.getInvSize() % 5; i++) {
-                if (inv.isValidInvStack(i, inv.getInvStack(i)))
-                mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((inv.getInvSize() / 5) * 5 + i);
+            for (int i = 0; i < inventory.getInvSize() % 5; i++) {
+                if (inventory.isValidInvStack(i, inventory.getInvStack(i)))
+                mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((inventory.getInvSize() / 5) * 5 + i);
             }
         }
     }
 
     protected void updateResult(int syncId, World world, PlayerEntity player, CraftingInventory craftingInventory, CraftingResultInventory resultInventory) {
-        if (!world.isClient) {
-            ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) player;
-            ItemStack itemStack = ItemStack.EMPTY;
-            Optional<CraftingRecipe> optional = world.getServer().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world);
+        ItemStack itemStack = ItemStack.EMPTY;
+
+        if (cachedRecipe != null && cachedRecipe.matches(craftingInventory, world)) {
+            itemStack = cachedRecipe.craft(craftingInventory);
+        } else {
+            Optional<CraftingRecipe> optional = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world);
             if (optional.isPresent()) {
                 CraftingRecipe craftingRecipe = optional.get();
-                if (resultInventory.shouldCraftRecipe(world, serverPlayerEntity, craftingRecipe)) {
+                if (craftingRecipe.matches(craftingInventory, world)) {
                     itemStack = craftingRecipe.craft(craftingInventory);
                 }
+                cachedRecipe = craftingRecipe;
+            } else {
+                cachedRecipe = null;
             }
-            resultInventory.setInvStack(0, itemStack);
-            super.onContentChanged(resultInventory);
-            ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, NetworkRegistry.SLOT_UPDATE_PACKET, NetworkRegistry.createSlotUpdatePacket(syncId, 0, 3, itemStack));
         }
+
+        resultInventory.setInvStack(0, itemStack);
     }
 
     @Override
     public void onContentChanged(Inventory inventory) {
         BlockContext context = BlockContext.create(this.getWorld(), this.craftingStationEntity.getPos());
         context.run((world, blockPos) -> {
-            updateResult(this.syncId, world, this.getPlayerInventory().player, craftInv, resultInventory);
+            updateResult(this.syncId, world, this.getPlayerInventory().player, craftingInventory, resultInventory);
         });
+    }
+
+    @Override
+    public void onSlotAction(int slotNumber, int inventoryNumber, int button, Action action, PlayerEntity player) {
+        WSlot slotT = null;
+
+        for (WAbstractWidget widget : serverInterface.getAllWidgets()) {
+            if (widget instanceof WSlot && ((WSlot) widget).getSlotNumber() == slotNumber && ((WSlot) widget).getInventoryNumber() == inventoryNumber) {
+                slotT = (WSlot) widget;
+            }
+        }
+
+        if (slotT == null || slotT.isLocked()) {
+            return;
+        }
+
+        WSlot slotA = slotT;
+
+        ItemStack stackA = slotA.getStack().copy();
+        ItemStack stackB = player.inventory.getCursorStack().copy();
+
+        PlayerInventory inventory = getPlayerInventory();
+
+        switch (action) {
+            case PICKUP: {
+
+                if (!StackUtilities.equalItemAndTag(stackA, stackB)) {
+                    if (button == 0) { // Interact with existing // LMB
+                        if (slotA.isOverrideMaximumCount()) {
+                            if (stackA.isEmpty()) {
+                                if (slotA.refuses(stackB)) return;
+
+                                slotA.consume(action, Action.Subtype.FROM_CURSOR_TO_SLOT_CUSTOM_FULL_STACK);
+                                StackUtilities.merge(stackB, stackA, stackB.getMaxCount(), slotA.getMaxCount()).apply(inventory::setCursorStack, slotA::acceptStack);
+                            } else if (stackB.isEmpty()) {
+                                if (slotA.refuses(stackB)) return;
+
+                                slotA.consume(action, Action.Subtype.FROM_SLOT_TO_CURSOR_CUSTOM_FULL_STACK);
+                                StackUtilities.merge(stackA, stackB, slotA.getInventoryNumber() == PLAYER_INVENTORY ? stackB.getMaxCount() : slotA.getMaxCount(), stackB.getMaxCount()).apply(slotA::acceptStack, inventory::setCursorStack);
+                            }
+                        } else {
+                            if (!stackB.isEmpty() && slotA.refuses(stackB)) return;
+
+                            slotA.consume(action, Action.Subtype.FROM_CURSOR_TO_SLOT_DEFAULT_FULL_STACK);
+
+                            if (!StackUtilities.equalItemAndTag(stackA, stackB)) {
+                                slotA.setStack(stackB);
+                                player.inventory.setCursorStack(stackA);
+                            } else {
+                                StackUtilities.merge(stackA, stackB, stackA.isEmpty() || slotA.getInventoryNumber() == PLAYER_INVENTORY ? stackB.getMaxCount() : slotA.getMaxCount(), stackB.getMaxCount()).apply(slotA::acceptStack, inventory::setCursorStack);
+                            }
+                        }
+                    } else if (button == 1 && !stackB.isEmpty()) { // Interact with existing // RMB
+                        slotA.consume(action, Action.Subtype.FROM_CURSOR_TO_SLOT_CUSTOM_SINGLE_ITEM);
+                        StackUtilities.merge(inventory::getCursorStack, slotA::getStack, inventory.getCursorStack()::getMaxCount, () -> (slotA.getStack().getCount() == slotA.getMaxCount() ? 0 : slotA.getStack().getCount() + 1)).apply(inventory::setCursorStack, slotA::setStack);
+                    } else if (button == 1) { // Split existing // RMB
+                        slotA.consume(action, Action.Subtype.FROM_SLOT_TO_CURSOR_DEFAULT_HALF_STACK);
+                        StackUtilities.merge(slotA::getStack, inventory::getCursorStack, inventory.getCursorStack()::getMaxCount, () -> Math.max(1, Math.min(slotA.getStack().getMaxCount() / 2, slotA.getStack().getCount() / 2))).apply(slotA::setStack, inventory::setCursorStack);
+                    }
+                } else {
+                    if (button == 0) {
+                        if (slotA instanceof WResultSlot) {
+                            if (stackB.getCount()  + slotA.getStack().getCount() > stackB.getMaxCount()) {
+                                return;
+                            }
+
+                            slotA.consume(action, Action.Subtype.FROM_SLOT_TO_CURSOR_CUSTOM_FULL_STACK);
+                            StackUtilities.merge(stackA, stackB, slotA.getInventoryNumber() == PLAYER_INVENTORY ? stackB.getMaxCount() : slotA.getMaxCount(), stackB.getMaxCount()).apply(slotA::acceptStack, inventory::setCursorStack);
+                        } else {
+                            if (slotA.refuses(stackB)) return;
+
+                            slotA.consume(action, Action.Subtype.FROM_CURSOR_TO_SLOT_CUSTOM_FULL_STACK);
+                            StackUtilities.merge(inventory::getCursorStack, slotA::getStack, stackB::getMaxCount, slotA::getMaxCount).apply(inventory::setCursorStack, slotA::setStack); // Add to existing // LMB
+                        }
+
+                    } else {
+                        if (slotA.refuses(stackB)) return;
+
+                        slotA.consume(action, Action.Subtype.FROM_CURSOR_TO_SLOT_CUSTOM_SINGLE_ITEM);
+                        StackUtilities.merge(inventory::getCursorStack, slotA::getStack, inventory.getCursorStack()::getMaxCount, () -> (slotA.getStack().getCount() == slotA.getMaxCount() ? 0 : slotA.getStack().getCount() + 1)).apply(inventory::setCursorStack, slotA::setStack); // Add to existing // RMB
+                    }
+                }
+                break;
+            }
+            case CLONE: {
+                if (player.isCreative()) {
+                    stackB = new ItemStack(stackA.getItem(), stackA.getMaxCount()); // Clone existing // MMB
+                    stackB.setTag(stackA.getTag());
+                    inventory.setCursorStack(stackB);
+                }
+                break;
+            }
+            case QUICK_MOVE: {
+                WSlot targetSlot = null;
+                for (WAbstractWidget widget : serverInterface.getAllWidgets()) {
+                    if (widget instanceof WSlot && ((WSlot) widget).getLinkedInventory() != slotA.getLinkedInventory()) {
+                        WSlot slotB = ((WSlot) widget);
+                        ItemStack stackC = slotB.getStack();
+                        stackA = slotA.getStack();
+
+                        if ((!slotA.getStack().isEmpty() && stackC.isEmpty()) || (StackUtilities.equalItemAndTag(stackA, stackC) && stackC.getCount() < (slotB.getInventoryNumber() == PLAYER_INVENTORY ? stackA.getMaxCount() : slotB.getMaxCount()))) {
+                            targetSlot = slotB;
+                            break;
+                        }
+                    }
+                }
+                if (slotA instanceof WResultSlot && targetSlot != null) {
+                    while (!slotA.getStack().isEmpty() && (targetSlot.getStack().getCount() + slotA.getStack().getCount() <= targetSlot.getStack().getMaxCount())) {
+                        if (targetSlot.refuses(stackA)) continue;
+                        if (targetSlot.isLocked()) continue;
+
+                        ItemStack stackC = targetSlot.getStack();
+                        stackA = slotA.getStack();
+
+                        int maxB = stackC.isEmpty() || targetSlot.getInventoryNumber() == PLAYER_INVENTORY ? stackA.getMaxCount() : targetSlot.getMaxCount();
+                        StackUtilities.merge(slotA::getStack, targetSlot::getStack, slotA::getMaxCount, () -> maxB).apply(slotA::setStack, targetSlot::setStack);
+                        slotA.consume(action, Action.Subtype.FROM_SLOT_TO_SLOT_CUSTOM_FULL_STACK);
+                    }
+                } else if (targetSlot != null && targetSlot.getLinkedInventory() != slotA.getLinkedInventory()) {
+                    ItemStack stackC = targetSlot.getStack();
+                    stackA = slotA.getStack();
+
+                    if (targetSlot.refuses(stackA)) return;
+                    if (targetSlot.isLocked()) return;
+
+                    if ((!slotA.getStack().isEmpty() && stackC.isEmpty()) || (StackUtilities.equalItemAndTag(stackA, stackC) && stackC.getCount() < (targetSlot.getInventoryNumber() == PLAYER_INVENTORY ? stackA.getMaxCount() : targetSlot.getMaxCount()))) {
+                        int maxB = stackC.isEmpty() || targetSlot.getInventoryNumber() == PLAYER_INVENTORY ? stackA.getMaxCount() : targetSlot.getMaxCount();
+                        slotA.consume(action, Action.Subtype.FROM_SLOT_TO_SLOT_CUSTOM_FULL_STACK);
+                        StackUtilities.merge(slotA::getStack, targetSlot::getStack, slotA::getMaxCount, () -> maxB).apply(slotA::setStack, ((WSlot) targetSlot)::setStack);
+                        break;
+                    }
+                }
+
+                break;
+            }
+            case PICKUP_ALL: {
+                if (slotA instanceof WResultSlot) {
+                    return;
+                }
+
+                for (WAbstractWidget widget : getInterface().getAllWidgets()) {
+                    if (widget instanceof WSlot && StackUtilities.equalItemAndTag(((WSlot) widget).getStack(), stackB)) {
+                        WSlot slotB = (WSlot) widget;
+
+                        if (slotB instanceof WResultSlot) {
+                            return;
+                        }
+
+                        if (slotB.isLocked()) continue;
+
+                        slotB.consume(action, Action.Subtype.FROM_SLOT_TO_CURSOR_CUSTOM_FULL_STACK);
+                        StackUtilities.merge(slotB::getStack, inventory::getCursorStack, slotB::getMaxCount, stackB::getMaxCount).apply(slotB::setStack, inventory::setCursorStack);
+                    }
+                }
+            }
+        }
     }
 }

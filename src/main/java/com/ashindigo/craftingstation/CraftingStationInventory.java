@@ -5,11 +5,11 @@ import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 
-public class CraftingStationInv extends CraftingInventory {
+public class CraftingStationInventory extends CraftingInventory {
     private Container container;
     private final Inventory actualInv;
 
-    public CraftingStationInv(Container container, Inventory actualInv) {
+    public CraftingStationInventory(Container container, Inventory actualInv) {
         super(container, 3, 3);
         this.container = container;
         this.actualInv = actualInv;
