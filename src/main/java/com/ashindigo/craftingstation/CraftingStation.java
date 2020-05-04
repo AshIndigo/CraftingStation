@@ -19,14 +19,14 @@ public class CraftingStation implements ModInitializer {
     public static final String MODID = "craftingstation";
     public static final Identifier ID = new Identifier(MODID, MODID);
     public static BlockEntityType<CraftingStationEntity> craftingStationEntity;
+    public static CraftingStationBlock craftingStationBlock;
 
     @Override
     public void onInitialize() {
-        CraftingStationBlock craftingStationBlock = new CraftingStationBlock(FabricBlockSettings.of(Material.WOOD).strength(2.5F, 2.5F).sounds(BlockSoundGroup.WOOD).nonOpaque().build());
+        craftingStationBlock = new CraftingStationBlock(FabricBlockSettings.of(Material.WOOD).strength(2.5F, 2.5F).sounds(BlockSoundGroup.WOOD).nonOpaque().build());
         Registry.register(Registry.BLOCK, ID, craftingStationBlock);
         Registry.register(Registry.ITEM, ID, new BlockItem(craftingStationBlock, new Item.Settings().maxCount(64).group(ItemGroup.MISC)));
         ContainerProviderRegistry.INSTANCE.registerFactory(new Identifier(MODID, MODID), (syncId, id, player, buffer) -> new CraftingStationContainer(syncId, player.inventory, buffer.readBlockPos(), buffer.readInt(), buffer.readInt(), buffer.readInt()));
         craftingStationEntity = Registry.register(Registry.BLOCK_ENTITY_TYPE, ID, BlockEntityType.Builder.create(CraftingStationEntity::new, craftingStationBlock).build(null));
-        BlockRenderLayerMap.INSTANCE.putBlock(craftingStationBlock, RenderLayer.getCutout());
     }
 }

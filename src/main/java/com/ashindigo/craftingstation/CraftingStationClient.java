@@ -1,7 +1,9 @@
 package com.ashindigo.craftingstation;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
@@ -17,5 +19,6 @@ public class CraftingStationClient implements ClientModInitializer {
                     Text text = buf.readText();
                     return new CraftingStationScreen(text, new CraftingStationContainer(id, player.inventory, pos, x, y, m), player, x, y);
                 });
+        BlockRenderLayerMap.INSTANCE.putBlock(CraftingStation.craftingStationBlock, RenderLayer.getCutout());
     }
 }

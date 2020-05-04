@@ -6,7 +6,7 @@
   "name": "Crafting Station",
   "description": "Adds a Crafting Station",
   "authors": [
-    "AshIndigo"
+    "AshIndigo", "Vini2003"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
@@ -30,8 +30,8 @@
 
   "depends": {
     "fabricloader": ">=0.4.0",
-    "fabric": "*",
-    "spinnery": ">=2.0.17+fabric-20w06a"
+    "fabric": ">=0.4.32+build.292-1.15",
+    "spinnery": ">=2.0.27+fabric-1.15.2"
   },
   "suggests": {
   }
