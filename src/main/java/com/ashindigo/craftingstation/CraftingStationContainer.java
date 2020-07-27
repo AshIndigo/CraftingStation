@@ -3,8 +3,6 @@ package com.ashindigo.craftingstation;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.container.BlockContext;
-import net.minecraft.container.CraftingResultSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingInventory;
@@ -13,11 +11,15 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.RecipeType;
+import net.minecraft.screen.ScreenHandlerContext;
+import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.screen.slot.CraftingResultSlot;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import spinnery.common.BaseContainer;
-import spinnery.util.StackUtilities;
+import spinnery.common.container.BaseContainer;
+import spinnery.common.handler.BaseScreenHandler;
+import spinnery.common.utility.StackUtilities;
 import spinnery.widget.WAbstractWidget;
 import spinnery.widget.WInterface;
 import spinnery.widget.WSlot;
@@ -26,7 +28,7 @@ import spinnery.widget.api.Action;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-public class CraftingStationContainer extends BaseContainer { // Mess of a class, just run away
+public class CraftingStationContainer extends BaseScreenHandler { // Mess of a class, just run away
     public static final int INVENTORY = 1;
     public static final int ATTACHED_INVENTORY = 2;
     public static final int RESULT_INVENTORY = 3;
@@ -37,7 +39,7 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
     CraftingResultInventory resultInventory;
     CraftingStationInventory craftingInventory;
 
-    public CraftingStationContainer(int synchronizationID, PlayerInventory playerInventory, BlockPos pos, int arrayWidth, int arrayHeight, int m) {
+    public CraftingStationContainer(int synchronizationID, PlayerInventory playerInventory, BlockPos pos) {
         super(synchronizationID, playerInventory);
         craftingStationEntity = ((CraftingStationEntity) getWorld().getBlockEntity(pos));
 
@@ -59,16 +61,16 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
         if (resultInventory == null) {
             resultInventory = new CraftingResultInventory() {
                 @Override
-                public void setInvStack(int slot, ItemStack stack) {
-                    super.setInvStack(slot, stack);
+                public void setStack(int slot, ItemStack stack) {
+                    super.setStack(slot, stack);
 
                     if (!world.isClient) {
-                        if (!craftingStationEntity.inventory.isInvEmpty() && world.getServer().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).isPresent() && !stack.isItemEqual(getInvStack(0))) {
+                        if (!craftingStationEntity.inventory.isEmpty() && world.getServer().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).isPresent() && !stack.isItemEqual(getStack(0))) {
                             onContentChanged(null);
                         }
                     }
-                    if (craftingStationEntity.inventory.isInvEmpty()) {
-                        super.setInvStack(0, ItemStack.EMPTY);
+                    if (craftingStationEntity.inventory.isEmpty()) {
+                        super.setStack(0, ItemStack.EMPTY);
                     }
                 }
             };
@@ -98,7 +100,7 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
 
         // Code to add external slots
         for (Direction direction : Direction.values()) {
-            BlockContext context = BlockContext.create(this.getWorld(), this.craftingStationEntity.getPos());
+            ScreenHandlerContext context = ScreenHandlerContext.create(this.getWorld(), this.craftingStationEntity.getPos());
             Optional<BlockPos> optional = context.run((BiFunction<World, BlockPos, BlockPos>) (world, blockPos) -> blockPos.offset(direction));
             if (optional.isPresent()) {
                 BlockEntity blockEntity = playerInventory.player.world.getBlockEntity(optional.get());
@@ -124,15 +126,15 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
     void addAttachedInventory(Inventory inventory, WInterface mainInterface) {
         if (inventory != null) {
             addInventory(ATTACHED_INVENTORY, inventory);
-            for (int i = 0; i < inventory.getInvSize() / 5; i++) {
+            for (int i = 0; i < inventory.size() / 5; i++) {
                 for (int j = 0; j < 5; j++) {
-                    if (inventory.isValidInvStack(i, inventory.getInvStack(i)))
+                    if (inventory.isValid(i, inventory.getStack(i)))
                     mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((5 * i) + j);
                 }
             }
-            for (int i = 0; i < inventory.getInvSize() % 5; i++) {
-                if (inventory.isValidInvStack(i, inventory.getInvStack(i)))
-                mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((inventory.getInvSize() / 5) * 5 + i);
+            for (int i = 0; i < inventory.size() % 5; i++) {
+                if (inventory.isValid(i, inventory.getStack(i)))
+                mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((inventory.size() / 5) * 5 + i);
             }
         }
     }
@@ -155,12 +157,12 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
             }
         }
 
-        resultInventory.setInvStack(0, itemStack);
+        resultInventory.setStack(0, itemStack);
     }
 
     @Override
     public void onContentChanged(Inventory inventory) {
-        BlockContext context = BlockContext.create(this.getWorld(), this.craftingStationEntity.getPos());
+        ScreenHandlerContext context = ScreenHandlerContext.create(this.getWorld(), this.craftingStationEntity.getPos());
         context.run((world, blockPos) -> {
             updateResult(this.syncId, world, this.getPlayerInventory().player, craftingInventory, resultInventory);
         });
@@ -320,5 +322,10 @@ public class CraftingStationContainer extends BaseContainer { // Mess of a class
                 }
             }
         }
+    }
+
+    @Override
+    public ScreenHandlerType<?> getType() {
+        return CraftingStation.craftingStationScreenHandler;
     }
 }

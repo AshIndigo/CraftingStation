@@ -1,11 +1,11 @@
 package com.ashindigo.craftingstation;
 
-import com.ashindigo.craftingstation.CraftingStation;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.CompoundTag;
-import spinnery.common.BaseInventory;
-import spinnery.util.InventoryUtilities;
+import spinnery.common.inventory.BaseInventory;
+import spinnery.common.utility.InventoryUtilities;
 
 public class CraftingStationEntity extends BlockEntity implements BlockEntityClientSerializable {
 
@@ -17,8 +17,8 @@ public class CraftingStationEntity extends BlockEntity implements BlockEntityCli
     }
 
     @Override
-    public void fromTag(CompoundTag tag) {
-        super.fromTag(tag);
+    public void fromTag(BlockState state, CompoundTag tag) {
+        super.fromTag(state, tag);
         this.inventory = InventoryUtilities.read(tag);
     }
 
@@ -31,7 +31,7 @@ public class CraftingStationEntity extends BlockEntity implements BlockEntityCli
 
     @Override
     public void fromClientTag(CompoundTag tag) {
-        super.fromTag(tag);
+        super.fromTag(getCachedState(), tag);
         inventory = InventoryUtilities.read(tag);
     }
 

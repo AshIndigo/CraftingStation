@@ -1,38 +1,38 @@
 package com.ashindigo.craftingstation;
 
-import net.minecraft.container.Container;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ScreenHandler;
 
 public class CraftingStationInventory extends CraftingInventory {
-    private Container container;
+    private final ScreenHandler container;
     private final Inventory actualInv;
 
-    public CraftingStationInventory(Container container, Inventory actualInv) {
+    public CraftingStationInventory(ScreenHandler container, Inventory actualInv) {
         super(container, 3, 3);
         this.container = container;
         this.actualInv = actualInv;
     }
 
     @Override
-    public boolean isInvEmpty() {
-        return actualInv.isInvEmpty();
+    public boolean isEmpty() {
+        return actualInv.isEmpty();
     }
 
     @Override
-    public ItemStack getInvStack(int index) {
-        return actualInv.getInvStack(index);
+    public ItemStack getStack(int slot) {
+        return actualInv.getStack(slot);
     }
 
     @Override
-    public ItemStack removeInvStack(int index) {
-        return actualInv.removeInvStack(index);
+    public ItemStack removeStack(int slot) {
+        return actualInv.removeStack(slot);
     }
 
     @Override
-    public ItemStack takeInvStack(int index, int count) {
-        ItemStack removed = actualInv.takeInvStack(index, count);
+    public ItemStack removeStack(int slot, int amount) {
+        ItemStack removed = actualInv.removeStack(slot, amount);
         if (!removed.isEmpty()) {
             onCraftMatrixChanged();
         }
@@ -40,10 +40,11 @@ public class CraftingStationInventory extends CraftingInventory {
     }
 
     @Override
-    public void setInvStack(int index, ItemStack stack) {
-        actualInv.setInvStack(index, stack);
+    public void setStack(int slot, ItemStack stack) {
+        actualInv.setStack(slot, stack);
         onCraftMatrixChanged();
     }
+
 
     public void onCraftMatrixChanged() {
         this.container.onContentChanged(this);

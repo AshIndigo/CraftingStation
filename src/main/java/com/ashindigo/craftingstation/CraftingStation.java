@@ -4,6 +4,8 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
+import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
+import net.fabricmc.fabric.impl.screenhandler.ExtendedScreenHandlerType;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.render.RenderLayer;
@@ -20,13 +22,14 @@ public class CraftingStation implements ModInitializer {
     public static final Identifier ID = new Identifier(MODID, MODID);
     public static BlockEntityType<CraftingStationEntity> craftingStationEntity;
     public static CraftingStationBlock craftingStationBlock;
+    public static ExtendedScreenHandlerType<CraftingStationContainer> craftingStationScreenHandler;
 
     @Override
     public void onInitialize() {
         craftingStationBlock = new CraftingStationBlock(FabricBlockSettings.of(Material.WOOD).strength(2.5F, 2.5F).sounds(BlockSoundGroup.WOOD).nonOpaque().build());
         Registry.register(Registry.BLOCK, ID, craftingStationBlock);
         Registry.register(Registry.ITEM, ID, new BlockItem(craftingStationBlock, new Item.Settings().maxCount(64).group(ItemGroup.MISC)));
-        ContainerProviderRegistry.INSTANCE.registerFactory(new Identifier(MODID, MODID), (syncId, id, player, buffer) -> new CraftingStationContainer(syncId, player.inventory, buffer.readBlockPos(), buffer.readInt(), buffer.readInt(), buffer.readInt()));
+        craftingStationScreenHandler = (ExtendedScreenHandlerType<CraftingStationContainer>) ScreenHandlerRegistry.registerExtended(new Identifier(MODID, MODID), (syncId, inventory, buf) -> new CraftingStationContainer(syncId, inventory, buf.readBlockPos()));
         craftingStationEntity = Registry.register(Registry.BLOCK_ENTITY_TYPE, ID, BlockEntityType.Builder.create(CraftingStationEntity::new, craftingStationBlock).build(null));
     }
 }

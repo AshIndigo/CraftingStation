@@ -3,14 +3,15 @@ package com.ashindigo.craftingstation;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.container.BlockContext;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import spinnery.common.BaseContainerScreen;
+import spinnery.client.screen.BaseHandledScreen;
 import spinnery.widget.*;
 import spinnery.widget.api.Position;
 import spinnery.widget.api.Size;
@@ -19,16 +20,16 @@ import java.util.Optional;
 
 import static com.ashindigo.craftingstation.CraftingStationContainer.INVENTORY;
 
-public class CraftingStationScreen extends BaseContainerScreen<CraftingStationContainer> {
+public class CraftingStationScreen extends BaseHandledScreen<CraftingStationContainer> {
 
-    public CraftingStationScreen(Text text, CraftingStationContainer linkedContainer, PlayerEntity player, int arrayWidth, int arrayHeight) { // arrayWidth is size
-        super(text, linkedContainer, player);
-
+    public CraftingStationScreen(CraftingStationContainer linkedContainer, PlayerInventory playerInv, Text name) {
+        super(name, linkedContainer, playerInv.player);
+        PlayerEntity player = playerInv.player;
         WInterface mainInterface = getInterface();
         WPanel mainPanel = mainInterface.createChild(WPanel::new, Position.of(mainInterface), Size.of(176, 166));
 
         mainPanel.setOnAlign(WAbstractWidget::center);
-        mainPanel.setLabel(text);
+        mainPanel.setLabel(name);
 
         Size size = Size.of(18, 18);
         Position position = Position.of(mainPanel, 24, 24, 1);
@@ -45,7 +46,7 @@ public class CraftingStationScreen extends BaseContainerScreen<CraftingStationCo
         WSlot.addPlayerInventory(Position.of(mainPanel).add(7, 83, 1), Size.of(18, 18), mainPanel);
 
         for (Direction direction : Direction.values()) {
-            BlockContext context = BlockContext.create(linkedContainer.getWorld(), linkedContainer.craftingStationEntity.getPos());
+            ScreenHandlerContext context = ScreenHandlerContext.create(linkedContainer.getWorld(), linkedContainer.craftingStationEntity.getPos());
             Optional<BlockPos> optional = context.run((world, blockPos) -> {
                 return blockPos.offset(direction);
             });
@@ -79,16 +80,16 @@ public class CraftingStationScreen extends BaseContainerScreen<CraftingStationCo
         }
         list.createChild(WStaticText::new, Position.of(list, 24, 0, 2), Size.of(30, 18)).setText("Inventory");
         int finalY = 0;
-        for (int i = 0; i < inv.getInvSize() / 5; i++) {
+        for (int i = 0; i < inv.size() / 5; i++) {
             for (int j = 0; j < 5; j++) {
-                if (inv.isValidInvStack(i, inv.getInvStack(i)))
+                if (inv.isValid(i, inv.getStack(i)))
                 list.createChild(WSlot::new, Position.of(list, 4 + (18 * j), 18 + (18 * i), 2), Size.of(18, 18)).setInventoryNumber(2).setSlotNumber((5 * i) + j);
                 finalY = 18 + (18 * i);
             }
         }
-        for (int i = 0; i < inv.getInvSize() % 5; i++) {
-            if (inv.isValidInvStack(i, inv.getInvStack(i)))
-            list.createChild(WSlot::new, Position.of(list, 4 + (18 * i), finalY + 18, 2), Size.of(18, 18)).setInventoryNumber(2).setSlotNumber((inv.getInvSize() / 5) * 5 + i);
+        for (int i = 0; i < inv.size() % 5; i++) {
+            if (inv.isValid(i, inv.getStack(i)))
+            list.createChild(WSlot::new, Position.of(list, 4 + (18 * i), finalY + 18, 2), Size.of(18, 18)).setInventoryNumber(2).setSlotNumber((inv.size() / 5) * 5 + i);
         }
     }
 }
