@@ -1,5 +1,6 @@
 package com.ashindigo.craftingstation;
 
+import com.ashindigo.craftingstation.widgets.WResultSlot;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
@@ -17,7 +18,6 @@ import net.minecraft.screen.slot.CraftingResultSlot;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import spinnery.common.container.BaseContainer;
 import spinnery.common.handler.BaseScreenHandler;
 import spinnery.common.utility.StackUtilities;
 import spinnery.widget.WAbstractWidget;
@@ -110,7 +110,7 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
                         break;
                     }
                     if (playerInventory.player.world.getBlockState(optional.get()).getBlock() instanceof InventoryProvider) {
-                        addAttachedInventory(((InventoryProvider) blockEntity).getInventory(playerInventory.player.world.getBlockState(optional.get()), playerInventory.player.world, optional.get()), mainInterface);
+                        addAttachedInventory(((InventoryProvider) playerInventory.player.world.getBlockState(optional.get()).getBlock()).getInventory(playerInventory.player.world.getBlockState(optional.get()), playerInventory.player.world, optional.get()), mainInterface);
                         break;
                     }
                     if (blockEntity instanceof Inventory) {

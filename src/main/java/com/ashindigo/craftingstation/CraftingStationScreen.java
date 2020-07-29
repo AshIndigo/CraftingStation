@@ -1,5 +1,7 @@
 package com.ashindigo.craftingstation;
 
+import com.ashindigo.craftingstation.widgets.WResultSlot;
+import com.ashindigo.craftingstation.widgets.WVerticalScrollableContainerModified;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
@@ -16,6 +18,9 @@ import spinnery.widget.*;
 import spinnery.widget.api.Position;
 import spinnery.widget.api.Size;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.ashindigo.craftingstation.CraftingStationContainer.INVENTORY;
@@ -58,7 +63,7 @@ public class CraftingStationScreen extends BaseHandledScreen<CraftingStationCont
                         break;
                     }
                     if (playerInventory.player.world.getBlockState(optional.get()).getBlock() instanceof InventoryProvider) {
-                        addAttachedInventory(((InventoryProvider) blockEntity).getInventory(player.world.getBlockState(optional.get()), player.world, optional.get()), mainPanel, mainInterface);
+                        addAttachedInventory(((InventoryProvider) playerInventory.player.world.getBlockState(optional.get()).getBlock()).getInventory(player.world.getBlockState(optional.get()), player.world, optional.get()), mainPanel, mainInterface);
                         break;
                     }
                     if (blockEntity instanceof Inventory) {
@@ -73,23 +78,35 @@ public class CraftingStationScreen extends BaseHandledScreen<CraftingStationCont
     }
 
     void addAttachedInventory(Inventory inv, WPanel mainPanel, WInterface mainInterface) {
-        WVerticalScrollableContainer list = mainInterface.createChild(WVerticalScrollableContainer::new, Position.of(mainPanel).add(3, 22, 1), Size.of(104, 166 - 36));
+        Size slotSize = Size.of(18, 18);
+        WVerticalScrollableContainerModified list = mainInterface.createChild(WVerticalScrollableContainerModified::new, Position.of(mainPanel).add(3, 22, 1), Size.of(104, 166 - 36)).setDivisionSpace(0);
         mainPanel.setSize(Size.of(181 + (5 * 18) + 9, 166));
         for (WAbstractWidget widget : mainPanel.getWidgets()) {
             widget.setPosition(widget.getPosition().add((5 * 18) + 15, 0, 0));
         }
-        list.createChild(WStaticText::new, Position.of(list, 24, 0, 2), Size.of(30, 18)).setText("Inventory");
-        int finalY = 0;
-        for (int i = 0; i < inv.size() / 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                if (inv.isValid(i, inv.getStack(i)))
-                list.createChild(WSlot::new, Position.of(list, 4 + (18 * j), 18 + (18 * i), 2), Size.of(18, 18)).setInventoryNumber(2).setSlotNumber((5 * i) + j);
-                finalY = 18 + (18 * i);
+        int c = 0;
+        int y = 0;
+        ArrayList<WSlot> row = new ArrayList<>(Collections.nCopies(9, null));
+        for (int i = 0; i < inv.size(); i++) {
+            if (inv.isValid(i, inv.getStack(i))) {
+                WSlot slot = new WSlot().setInventoryNumber(2).setSlotNumber(i).setPosition(Position.of(list).add((18 * c), 0, 2).setOffsetY((18 * y))).setSize(slotSize);
+                if (!row.isEmpty()) {
+                    row.set(c, slot);
+                }
+                if (c == 4) {
+                    y++;
+                    row.removeIf(Objects::isNull);
+                    if (!list.contains(row.toArray(new WSlot[]{}))) {
+                        list.addRow(row.toArray(new WSlot[]{}));
+                        row = new ArrayList<>(Collections.nCopies(9, null));
+                    }
+                }
+                c = c == 4 ? 0 : c + 1;
             }
         }
-        for (int i = 0; i < inv.size() % 5; i++) {
-            if (inv.isValid(i, inv.getStack(i)))
-            list.createChild(WSlot::new, Position.of(list, 4 + (18 * i), finalY + 18, 2), Size.of(18, 18)).setInventoryNumber(2).setSlotNumber((inv.size() / 5) * 5 + i);
+        row.removeIf(Objects::isNull);
+        if (!list.contains(row.toArray(new WSlot[]{}))) {
+            list.addRow(row.toArray(new WSlot[]{}));
         }
     }
 }
