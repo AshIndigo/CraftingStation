@@ -1,5 +1,8 @@
-package com.ashindigo.craftingstation;
+package com.ashindigo.craftingstation.screen;
 
+import com.ashindigo.craftingstation.CraftingStation;
+import com.ashindigo.craftingstation.entity.CraftingStationEntity;
+import com.ashindigo.craftingstation.handler.CraftingStationContainer;
 import com.ashindigo.craftingstation.widgets.WResultSlot;
 import com.ashindigo.craftingstation.widgets.WVerticalScrollableContainerModified;
 import net.minecraft.block.ChestBlock;
@@ -23,7 +26,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.ashindigo.craftingstation.CraftingStationContainer.INVENTORY;
+import static com.ashindigo.craftingstation.handler.CraftingStationContainer.INVENTORY;
 
 public class CraftingStationScreen extends BaseHandledScreen<CraftingStationContainer> {
 
@@ -44,7 +47,6 @@ public class CraftingStationScreen extends BaseHandledScreen<CraftingStationCont
                 mainPanel.createChild(WSlot::new, position.add(size.getWidth() * x, size.getHeight() * y, 1), size).setSlotNumber(x + y * 3).setInventoryNumber(INVENTORY);
             }
         }
-
         mainPanel.createChild(WStaticImage::new, Position.of(mainPanel, 114 - 30, 43, 1), Size.of(22, 15)).setTexture(new Identifier(CraftingStation.MODID, "gui/arrow.png"));
         mainPanel.createChild(WResultSlot::new, Position.of(mainPanel, 114, 42, 1), Size.of(18, 18)).setInventoryNumber(3).setSlotNumber(0);
 

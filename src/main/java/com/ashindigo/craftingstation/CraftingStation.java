@@ -1,5 +1,8 @@
 package com.ashindigo.craftingstation;
 
+import com.ashindigo.craftingstation.block.CraftingStationBlock;
+import com.ashindigo.craftingstation.entity.CraftingStationEntity;
+import com.ashindigo.craftingstation.handler.CraftingStationContainer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;

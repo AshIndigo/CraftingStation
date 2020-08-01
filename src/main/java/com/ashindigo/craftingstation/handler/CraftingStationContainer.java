@@ -1,5 +1,8 @@
-package com.ashindigo.craftingstation;
+package com.ashindigo.craftingstation.handler;
 
+import com.ashindigo.craftingstation.CraftingStation;
+import com.ashindigo.craftingstation.entity.CraftingStationEntity;
+import com.ashindigo.craftingstation.CraftingStationInventory;
 import com.ashindigo.craftingstation.widgets.WResultSlot;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
@@ -35,7 +38,7 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
 
     public CraftingRecipe cachedRecipe = null;
 
-    CraftingStationEntity craftingStationEntity;
+    public CraftingStationEntity craftingStationEntity;
     CraftingResultInventory resultInventory;
     CraftingStationInventory craftingInventory;
 
@@ -64,7 +67,7 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
                 public void setStack(int slot, ItemStack stack) {
                     super.setStack(slot, stack);
 
-                    if (!world.isClient) {
+                    if (!world.isClient && world.getServer() != null) {
                         if (!craftingStationEntity.inventory.isEmpty() && world.getServer().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).isPresent() && !stack.isItemEqual(getStack(0))) {
                             onContentChanged(null);
                         }
@@ -139,7 +142,7 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
         }
     }
 
-    protected void updateResult(int syncId, World world, PlayerEntity player, CraftingInventory craftingInventory, CraftingResultInventory resultInventory) {
+    protected void updateResult(CraftingInventory craftingInventory, CraftingResultInventory resultInventory) {
         ItemStack itemStack = ItemStack.EMPTY;
 
         if (cachedRecipe != null && cachedRecipe.matches(craftingInventory, world)) {
@@ -164,7 +167,7 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
     public void onContentChanged(Inventory inventory) {
         ScreenHandlerContext context = ScreenHandlerContext.create(this.getWorld(), this.craftingStationEntity.getPos());
         context.run((world, blockPos) -> {
-            updateResult(this.syncId, world, this.getPlayerInventory().player, craftingInventory, resultInventory);
+            updateResult(craftingInventory, resultInventory);
         });
     }
 

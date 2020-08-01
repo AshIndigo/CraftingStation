@@ -2,10 +2,8 @@ package com.ashindigo.craftingstation.widgets;
 
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
 import spinnery.client.render.BaseRenderer;
 import spinnery.client.utility.ScissorArea;
-import spinnery.common.registry.ThemeRegistry;
 import spinnery.common.utility.MouseUtilities;
 import spinnery.widget.WAbstractWidget;
 import spinnery.widget.WVerticalArrowDown;
@@ -14,7 +12,6 @@ import spinnery.widget.WVerticalScrollableContainer;
 import spinnery.widget.api.Color;
 import spinnery.widget.api.Position;
 import spinnery.widget.api.Size;
-import spinnery.widget.api.Style;
 
 import java.util.Arrays;
 
