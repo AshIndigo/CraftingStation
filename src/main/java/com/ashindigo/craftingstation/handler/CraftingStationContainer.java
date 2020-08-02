@@ -1,8 +1,8 @@
 package com.ashindigo.craftingstation.handler;
 
 import com.ashindigo.craftingstation.CraftingStation;
-import com.ashindigo.craftingstation.entity.CraftingStationEntity;
 import com.ashindigo.craftingstation.CraftingStationInventory;
+import com.ashindigo.craftingstation.entity.CraftingStationEntity;
 import com.ashindigo.craftingstation.widgets.WResultSlot;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.InventoryProvider;
@@ -18,6 +18,7 @@ import net.minecraft.recipe.RecipeType;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.CraftingResultSlot;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -39,8 +40,8 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
     public CraftingRecipe cachedRecipe = null;
 
     public CraftingStationEntity craftingStationEntity;
-    CraftingResultInventory resultInventory;
-    CraftingStationInventory craftingInventory;
+    public CraftingResultInventory resultInventory;
+    public CraftingStationInventory craftingInventory;
 
     public CraftingStationContainer(int synchronizationID, PlayerInventory playerInventory, BlockPos pos) {
         super(synchronizationID, playerInventory);
@@ -132,12 +133,12 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
             for (int i = 0; i < inventory.size() / 5; i++) {
                 for (int j = 0; j < 5; j++) {
                     if (inventory.isValid(i, inventory.getStack(i)))
-                    mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((5 * i) + j);
+                        mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((5 * i) + j);
                 }
             }
             for (int i = 0; i < inventory.size() % 5; i++) {
                 if (inventory.isValid(i, inventory.getStack(i)))
-                mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((inventory.size() / 5) * 5 + i);
+                    mainInterface.createChild(WSlot::new).setInventoryNumber(2).setSlotNumber((inventory.size() / 5) * 5 + i);
             }
         }
     }
@@ -231,7 +232,7 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
                 } else {
                     if (button == 0) {
                         if (slotA instanceof WResultSlot) {
-                            if (stackB.getCount()  + slotA.getStack().getCount() > stackB.getMaxCount()) {
+                            if (stackB.getCount() + slotA.getStack().getCount() > stackB.getMaxCount()) {
                                 return;
                             }
 
@@ -325,6 +326,11 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
                 }
             }
         }
+    }
+
+    @Override
+    public Slot getSlot(int index) {
+        return index == 0 ? new Slot(resultInventory, 0, 0, 0) :  new Slot(craftingInventory, index - 1, 0, 0);
     }
 
     @Override
