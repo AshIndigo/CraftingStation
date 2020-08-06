@@ -2,7 +2,7 @@ package com.ashindigo.craftingstation.screen;
 
 import com.ashindigo.craftingstation.CraftingStation;
 import com.ashindigo.craftingstation.entity.CraftingStationEntity;
-import com.ashindigo.craftingstation.handler.CraftingStationContainer;
+import com.ashindigo.craftingstation.handler.CraftingStationHandler;
 import com.ashindigo.craftingstation.widgets.WResultSlot;
 import com.ashindigo.craftingstation.widgets.WVerticalScrollableContainerModified;
 import net.minecraft.block.ChestBlock;
@@ -26,11 +26,11 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.ashindigo.craftingstation.handler.CraftingStationContainer.INVENTORY;
+import static com.ashindigo.craftingstation.handler.CraftingStationHandler.INVENTORY;
 
-public class CraftingStationScreen extends BaseHandledScreen<CraftingStationContainer> {
+public class CraftingStationScreen extends BaseHandledScreen<CraftingStationHandler> {
 
-    public CraftingStationScreen(CraftingStationContainer linkedContainer, PlayerInventory playerInv, Text name) {
+    public CraftingStationScreen(CraftingStationHandler linkedContainer, PlayerInventory playerInv, Text name) {
         super(name, linkedContainer, playerInv.player);
         PlayerEntity player = playerInv.player;
         WInterface mainInterface = getInterface();

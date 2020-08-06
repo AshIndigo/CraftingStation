@@ -1,41 +1,41 @@
 package com.ashindigo.craftingstation.compat;
 
-import com.ashindigo.craftingstation.handler.CraftingStationContainer;
+import com.ashindigo.craftingstation.handler.CraftingStationHandler;
 import me.shedaniel.rei.server.ContainerInfo;
 import me.shedaniel.rei.server.RecipeFinder;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 
-public class CraftingStationContainerInfo implements ContainerInfo<CraftingStationContainer> {
+public class CraftingStationContainerInfo implements ContainerInfo<CraftingStationHandler> {
 
     @Override
     public Class<? extends ScreenHandler> getContainerClass() {
-        return CraftingStationContainer.class;
+        return CraftingStationHandler.class;
     }
 
     @Override
-    public int getCraftingResultSlotIndex(CraftingStationContainer container) {
+    public int getCraftingResultSlotIndex(CraftingStationHandler container) {
         return 0;
     }
 
     @Override
-    public int getCraftingWidth(CraftingStationContainer container) {
+    public int getCraftingWidth(CraftingStationHandler container) {
         return 3;
     }
 
     @Override
-    public int getCraftingHeight(CraftingStationContainer container) {
+    public int getCraftingHeight(CraftingStationHandler container) {
         return 3;
     }
 
     @Override
-    public void clearCraftingSlots(CraftingStationContainer container) {
+    public void clearCraftingSlots(CraftingStationHandler container) {
         container.craftingInventory.clear();
         container.resultInventory.clear();
     }
 
     @Override
-    public void populateRecipeFinder(CraftingStationContainer container, RecipeFinder recipeFinder) {
+    public void populateRecipeFinder(CraftingStationHandler container, RecipeFinder recipeFinder) {
         container.craftingInventory.provideRecipeInputs(new net.minecraft.recipe.RecipeFinder() {
             @Override
             public void addNormalItem(ItemStack itemStack_1) {

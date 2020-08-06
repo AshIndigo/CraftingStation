@@ -32,7 +32,7 @@ import spinnery.widget.api.Action;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-public class CraftingStationContainer extends BaseScreenHandler { // Mess of a class, just run away
+public class CraftingStationHandler extends BaseScreenHandler { // Mess of a class, just run away
     public static final int INVENTORY = 1;
     public static final int ATTACHED_INVENTORY = 2;
     public static final int RESULT_INVENTORY = 3;
@@ -43,7 +43,7 @@ public class CraftingStationContainer extends BaseScreenHandler { // Mess of a c
     public CraftingResultInventory resultInventory;
     public CraftingStationInventory craftingInventory;
 
-    public CraftingStationContainer(int synchronizationID, PlayerInventory playerInventory, BlockPos pos) {
+    public CraftingStationHandler(int synchronizationID, PlayerInventory playerInventory, BlockPos pos) {
         super(synchronizationID, playerInventory);
         craftingStationEntity = ((CraftingStationEntity) getWorld().getBlockEntity(pos));
 

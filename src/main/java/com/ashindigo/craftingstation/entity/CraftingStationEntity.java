@@ -1,7 +1,7 @@
 package com.ashindigo.craftingstation.entity;
 
 import com.ashindigo.craftingstation.CraftingStation;
-import com.ashindigo.craftingstation.handler.CraftingStationContainer;
+import com.ashindigo.craftingstation.handler.CraftingStationHandler;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
@@ -64,6 +64,6 @@ public class CraftingStationEntity extends BlockEntity implements BlockEntityCli
 
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new CraftingStationContainer(syncId, inv, pos);
+        return new CraftingStationHandler(syncId, inv, pos);
     }
 }
